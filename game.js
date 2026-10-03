@@ -15,6 +15,11 @@ const COLORS = [
   '#ffb74d', // L - orange
   '#cfd8dc', // 8 - power-up (pieza especial)
   '#f48fb1', // 9 - comodín (WILD)
+  '#4db6ac', // 10 - + (pentomino)
+  '#a1887f', // 11 - U (pentomino)
+  '#7986cb', // 12 - Y (pentomino)
+  '#fff176', // 13 - single 1x1
+  '#ff8a65', // 14 - cuadro 3x3 hueco
 ];
 
 const POWER_CELL = 8;
@@ -42,7 +47,19 @@ const PIECES = [
   [[5,5,0],[0,5,5],[0,0,0]],                  // Z
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
+  null, null,                                  // 8-9 reservados (power-up, comodín)
+  [[0,10,0],[10,10,10],[0,10,0]],             // + (pentomino)
+  [[11,0,11],[11,11,11],[0,0,0]],             // U (pentomino)
+  [[0,12,0,0],[12,12,12,12],[0,0,0,0],[0,0,0,0]], // Y (pentomino)
+  [[13]],                                      // single 1x1
+  [[14,14,14],[14,0,14],[14,14,14]],          // 3x3 hueco
 ];
+
+// Piezas no estándar: ~12% de las piezas son pentomino/hueca (peso relativo abajo).
+// El single 1x1 no es aleatorio: es la recompensa tras un Tetris (4 líneas a la vez).
+const RARE_CHANCE = 0.12;
+const RARE_WEIGHTS = { 10: 3, 11: 3, 12: 3, 14: 2 }; // +, U, Y, hueca (más difícil, menos frecuente)
+const SINGLE = 13;
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
@@ -63,7 +80,7 @@ const powerEl = document.getElementById('power-status');
 let gridColor = '#22222e';
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
-let pendingPower, lastPowerLines, freezeLeft, powerMsgTimer;
+let pendingPower, pendingSingle, lastPowerLines, freezeLeft, powerMsgTimer;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -92,9 +109,27 @@ function randomPiece() {
     pendingPower = false;
     return powerPiece();
   }
-  const type = Math.floor(Math.random() * 7) + 1;
+  if (pendingSingle) {
+    pendingSingle = false;
+    return makePiece(SINGLE);
+  }
+  if (Math.random() < RARE_CHANCE) return makePiece(randomRareType());
+  return makePiece(Math.floor(Math.random() * 7) + 1);
+}
+
+function makePiece(type) {
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
+}
+
+function randomRareType() {
+  const types = Object.keys(RARE_WEIGHTS);
+  let roll = Math.random() * types.reduce((sum, t) => sum + RARE_WEIGHTS[t], 0);
+  for (const t of types) {
+    roll -= RARE_WEIGHTS[t];
+    if (roll < 0) return Number(t);
+  }
+  return Number(types[0]);
 }
 
 function collide(shape, ox, oy) {
@@ -163,6 +198,7 @@ function clearLines() {
     score += (LINE_SCORES[cleared] || 0) * level;
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    if (cleared === 4) pendingSingle = true;
     if (lines - lastPowerLines >= POWER_EVERY) {
       pendingPower = true;
       lastPowerLines = lines;
@@ -393,6 +429,7 @@ function init() {
   dropInterval = 1000;
   dropAccum = 0;
   pendingPower = false;
+  pendingSingle = false;
   lastPowerLines = 0;
   freezeLeft = 0;
   setPowerMsg('');

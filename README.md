@@ -41,6 +41,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Vista previa** de la siguiente pieza.
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
+- **Piezas no estándar**: ~12% de las piezas son especiales: pentominós **+**, **U** y **Y** (5 bloques) o un **cuadro 3×3 hueco** (8 bloques, más raro). Tras un **Tetris** (4 líneas a la vez) la siguiente pieza es un **single 1×1** de recompensa.
 - **Power-ups**: cada 5 líneas eliminadas la siguiente pieza es especial (1 bloque con icono, visible en NEXT). Equivale a ~1 de cada 12 piezas. Efecto al aterrizar, tipo al azar con pesos:
   - 💣 **Bomba** (25%): destruye un área de 3×3.
   - ⚡ **Rayo** (25%): limpia una fila o una columna completa (50/50).
@@ -184,6 +185,8 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `COLORS`       | Paleta de colores por tipo de pieza      | 7 colores             |
 | `LINE_SCORES`  | Puntos por 1, 2, 3 o 4 líneas eliminadas | `[0,100,300,500,800]` |
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
+| `RARE_CHANCE`  | Probabilidad de pieza no estándar        | `0.12`                |
+| `RARE_WEIGHTS` | Peso relativo de +, U, Y y hueca         | `3, 3, 3, 2`          |
 | `POWER_EVERY`  | Líneas necesarias por power-up           | `5`                   |
 | `FREEZE_MS`    | Duración de Congelar en ms               | `5000`                |
 | `POWERUPS`     | Icono y peso (probabilidad) de cada tipo | 5 tipos               |

@@ -17,6 +17,11 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 - Flow: `loop` (rAF) drops piece on `dropInterval` → `lockPiece` = `merge` → `clearLines` → `spawn`. `spawn` calls `endGame` if new piece collides. Soft/hard drop and lock also route through `lockPiece`.
 - Pause cancels rAF and restarts `loop` manually on resume; `endGame` cancels rAF.
 
+## Non-standard pieces
+
+- `PIECES`/`COLORS` indices 10–14: `+`, `U`, `Y`, single (`SINGLE`=13), hollow 3×3. Indices 8–9 are reserved (power-up cell, `WILD`) and `null` in `PIECES`.
+- `randomPiece` priority: `pendingPower` > `pendingSingle` (set by a 4-line clear in `clearLines`) > `RARE_CHANCE` roll (`randomRareType`, `RARE_WEIGHTS`) > standard 1–7. `makePiece(type)` builds any piece.
+
 ## Power-ups
 
 - Every `POWER_EVERY` lines (`clearLines` sets `pendingPower`) `randomPiece` returns a 1×1 piece (`type`/cell `POWER_CELL`=8, `power` key into `POWERUPS`). `lockPiece` calls `applyPower` instead of `merge`.
