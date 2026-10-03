@@ -51,6 +51,12 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
   - ❄️ **Congelar** (15%): pausa la caída automática 5 s (puedes seguir moviendo).
   - Los bloques destruidos suman 10 puntos cada uno.
 - **Desafíos por nivel**: al subir de nivel se activan retos con objetivo (panel OBJETIVO). Nivel 2 **Obstáculos** (15 líneas con bloques precolocados), 3 **Basura** (sobrevive 90 s con una fila de basura cada 10 s), 5 **Sprint** (40 líneas en 2:00), 6 **Fantasma** (15 líneas, los bloques se ocultan tras fijar la pieza), 8 **Inversa** (20 líneas con rotación inversa). Superarlo da bono de 1000 × nivel; fallar solo pierde el bono y el juego sigue. Si se solapan, se encolan.
+- **Habilidades cargables**: cada línea limpiada suma 12% a la barra ENERGÍA. Con la barra llena pulsa `E` (el juego se pausa), elige una habilidad con `1`–`5` y la barra se vacía (`Esc` cancela sin costo):
+  - 🔮 **Visión**: muestra las siguientes 5 piezas (durante 5 piezas).
+  - 🔄 **Intercambio**: cambia la pieza actual por una de las 7 estándar a elección.
+  - ⏳ **Lentitud**: la caída es ×3 más lenta durante 10 s.
+  - ↩️ **Deshacer**: revierte la última colocación (tablero, puntaje, combo) y recuperas esa pieza.
+  - 📦 **Reserva**: guarda la pieza actual en HOLD; si ya hay una, las intercambia.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Toggle de tema** claro/oscuro (botón arriba a la derecha; por defecto modo oscuro).
 
@@ -95,6 +101,7 @@ Después abre `http://localhost:8000` en el navegador.
 | `↑` o `X` | Rotar la pieza en sentido horario |
 | `↓`       | Soft drop (bajar más rápido)      |
 | `Espacio` | Hard drop (caída instantánea)     |
+| `E`       | Abrir habilidades (barra llena)   |
 | `P`       | Pausar / reanudar                 |
 | `M`       | Silenciar / activar sonido        |
 
