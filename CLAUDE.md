@@ -1,0 +1,24 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+Vanilla JS Tetris (HTML5 Canvas). No build, no deps, no package.json, no tests, no linter. README is in Spanish; UI strings are Spanish too.
+
+Run: open `index.html` directly, or serve statically (`python -m http.server 8000`).
+
+## Architecture
+
+Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logic, single global script, `'use strict'`).
+
+- Board = `ROWS×COLS` matrix; cell is `0` or piece type 1–7. The same index keys `COLORS` and `PIECES` (index 0 is `null`), and piece shape matrices hold their own type number as cell value.
+- Game state lives in module-level `let` globals (`board, current, next, score, ...`), reset by `init()`. Restart button calls `init()`.
+- Flow: `loop` (rAF) drops piece on `dropInterval` → `lockPiece` = `merge` → `clearLines` → `spawn`. `spawn` calls `endGame` if new piece collides. Soft/hard drop and lock also route through `lockPiece`.
+- Pause cancels rAF and restarts `loop` manually on resume; `endGame` cancels rAF.
+
+## Gotchas
+
+- Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and a 4×4 grid.
+- Level/speed formula is duplicated in `clearLines` and the initial `1000` in `init`.
+- `README.md` says "~300 lines" and documents controls/scoring; keep in sync if mechanics change.
