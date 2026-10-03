@@ -367,11 +367,23 @@ function drawNext() {
   const NB = 30;
   nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
   const shape = next.shape;
-  const offX = Math.floor((4 - shape[0].length) / 2);
-  const offY = Math.floor((4 - shape.length) / 2);
+  // Centra por la caja que ocupan los bloques (la matriz tiene filas/columnas vacías)
+  let minR = Infinity, maxR = -1, minC = Infinity, maxC = -1;
   for (let r = 0; r < shape.length; r++)
     for (let c = 0; c < shape[r].length; c++)
-      drawBlock(nextCtx, offX + c, offY + r, shape[r][c], NB, 1, iconOf(next));
+      if (shape[r][c]) {
+        minR = Math.min(minR, r); maxR = Math.max(maxR, r);
+        minC = Math.min(minC, c); maxC = Math.max(maxC, c);
+      }
+  nextCtx.save();
+  nextCtx.translate(
+    (nextCanvas.width - (maxC - minC + 1) * NB) / 2,
+    (nextCanvas.height - (maxR - minR + 1) * NB) / 2
+  );
+  for (let r = minR; r <= maxR; r++)
+    for (let c = minC; c <= maxC; c++)
+      drawBlock(nextCtx, c - minC, r - minR, shape[r][c], NB, 1, iconOf(next));
+  nextCtx.restore();
 }
 
 function endGame() {

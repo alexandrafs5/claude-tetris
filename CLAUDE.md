@@ -30,6 +30,6 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 
 ## Gotchas
 
-- Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and a 4×4 grid.
+- Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and centers the piece's bounding box in the canvas.
 - Level/speed formula is duplicated in `clearLines` and the initial `1000` in `init`.
 - `README.md` says "~300 lines" and documents controls/scoring; keep in sync if mechanics change.
