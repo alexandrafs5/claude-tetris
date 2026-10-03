@@ -17,6 +17,12 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 - Flow: `loop` (rAF) drops piece on `dropInterval` → `lockPiece` = `merge` → `clearLines` → `spawn`. `spawn` calls `endGame` if new piece collides. Soft/hard drop and lock also route through `lockPiece`.
 - Pause cancels rAF and restarts `loop` manually on resume; `endGame` cancels rAF.
 
+## Power-ups
+
+- Every `POWER_EVERY` lines (`clearLines` sets `pendingPower`) `randomPiece` returns a 1×1 piece (`type`/cell `POWER_CELL`=8, `power` key into `POWERUPS`). `lockPiece` calls `applyPower` instead of `merge`.
+- Cell `WILD`=9 (from tint) lives in the board; `isRowComplete` lets wilds cover up to `MAX_WILD_FILL` holes. `COLORS` has entries 8–9 with no `PIECES` counterpart.
+- Freeze: `freezeLeft` ms stops `dropAccum` in `loop`; status shown in `#power-status`.
+
 ## Gotchas
 
 - Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and a 4×4 grid.

@@ -41,6 +41,13 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Vista previa** de la siguiente pieza.
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
+- **Power-ups**: cada 5 líneas eliminadas la siguiente pieza es especial (1 bloque con icono, visible en NEXT). Equivale a ~1 de cada 12 piezas. Efecto al aterrizar, tipo al azar con pesos:
+  - 💣 **Bomba** (25%): destruye un área de 3×3.
+  - ⚡ **Rayo** (25%): limpia una fila o una columna completa (50/50).
+  - 🎨 **Tinte** (20%): convierte el color más abundante en comodines ★. Una fila con comodines se completa aunque le falten hasta 2 huecos.
+  - 🧲 **Gravedad** (15%): compacta los huecos del tablero.
+  - ❄️ **Congelar** (15%): pausa la caída automática 5 s (puedes seguir moviendo).
+  - Los bloques destruidos suman 10 puntos cada uno.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Toggle de tema** claro/oscuro (botón arriba a la derecha; por defecto modo oscuro).
 
@@ -177,6 +184,9 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `COLORS`       | Paleta de colores por tipo de pieza      | 7 colores             |
 | `LINE_SCORES`  | Puntos por 1, 2, 3 o 4 líneas eliminadas | `[0,100,300,500,800]` |
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
+| `POWER_EVERY`  | Líneas necesarias por power-up           | `5`                   |
+| `FREEZE_MS`    | Duración de Congelar en ms               | `5000`                |
+| `POWERUPS`     | Icono y peso (probabilidad) de cada tipo | 5 tipos               |
 
 > Si cambias `COLS`, `ROWS` o `BLOCK`, recuerda ajustar también `width` y `height` del `<canvas id="board">` en `index.html` para que coincida (`COLS × BLOCK` × `ROWS × BLOCK`).
 
