@@ -27,16 +27,19 @@ const POWER_CELL = 8;
 const WILD = 9;
 const GARBAGE = 15;
 
-// Modo desafío: niveles con objetivo. goalLines = ganar al limpiar N líneas; surviveMs = ganar al aguantar ese tiempo.
-// timeLimit = tiempo máximo para goalLines; garbageEvery = sube una fila de basura cada N ms;
-// prefill = filas de obstáculos al inicio; hideLocked = bloques fijados se ocultan; reverseRot = rotar al revés.
+// Desafíos: se activan al alcanzar `level` por primera vez (si hay otro activo, quedan en cola).
+// goalLines = líneas a limpiar durante el desafío; surviveMs = tiempo a aguantar; timeLimit = tiempo máximo para goalLines;
+// garbageEvery = sube una fila de basura cada N ms; prefill = filas de obstáculos al empezar;
+// hideLocked = bloques fijados se ocultan; reverseRot = rotar al revés.
+// Éxito: bono CHALLENGE_BONUS × nivel. Fallo: sin bono y el juego sigue.
 const CHALLENGES = [
-  { name: 'Sprint',     desc: 'Limpia 40 líneas en 2:00',                    goalLines: 40, timeLimit: 120000 },
-  { name: 'Basura',     desc: 'Sobrevive 90 s: sube basura cada 10 s',       surviveMs: 90000, garbageEvery: 10000 },
-  { name: 'Obstáculos', desc: 'Limpia 15 líneas con bloques precolocados',   goalLines: 15, prefill: 7 },
-  { name: 'Fantasma',   desc: 'Limpia 15 líneas: las piezas se ocultan',     goalLines: 15, hideLocked: true },
-  { name: 'Inversa',    desc: 'Limpia 20 líneas: rotación inversa, nivel 6', goalLines: 20, startLevel: 6, reverseRot: true },
+  { level: 2, name: 'Obstáculos', desc: 'Limpia 15 líneas con bloques precolocados', goalLines: 15, prefill: 6 },
+  { level: 3, name: 'Basura',     desc: 'Sobrevive 90 s: sube basura cada 10 s',     surviveMs: 90000, garbageEvery: 10000 },
+  { level: 5, name: 'Sprint',     desc: 'Limpia 40 líneas en 2:00',                  goalLines: 40, timeLimit: 120000 },
+  { level: 6, name: 'Fantasma',   desc: 'Limpia 15 líneas: las piezas se ocultan',   goalLines: 15, hideLocked: true },
+  { level: 8, name: 'Inversa',    desc: 'Limpia 20 líneas: rotación inversa',        goalLines: 20, reverseRot: true },
 ];
+const CHALLENGE_BONUS = 1000;
 const REVEAL_MS = 600; // tiempo que se ve el tablero tras fijar una pieza (desafío Fantasma)
 
 // Power-ups: una pieza especial de 1 bloque cada POWER_EVERY líneas.
@@ -103,11 +106,6 @@ const goalSection = document.getElementById('goal-section');
 const goalDescEl = document.getElementById('goal-desc');
 const goalEl = document.getElementById('goal-status');
 const timerEl = document.getElementById('timer-status');
-const nextBtn = document.getElementById('next-btn');
-const menuEl = document.getElementById('menu');
-const menuList = document.getElementById('menu-list');
-const continueBtn = document.getElementById('continue-btn');
-const menuBtn = document.getElementById('menu-btn');
 
 let gridColor = '#22222e';
 
@@ -115,9 +113,8 @@ let board, current, next, score, lines, level, paused, gameOver, lastTime, dropA
 let pendingPower, pendingSingle, lastPowerLines, freezeLeft, powerMsgTimer;
 let combo, b2b, lastMoveRotate; // combo = clears consecutivos; b2b = último clear fue difícil
 let popups, particles, flashRows, shakeLeft, shakePower, perfectFlash;
-let challengeIdx = null, challenge = null; // null = modo clásico
-let elapsed, garbageAccum, revealLeft;
-let inMenu = false;
+let challengeIdx = null, challenge = null; // desafío activo (null = juego normal)
+let elapsed, garbageAccum, revealLeft, challengeStartLines, startedChallenges, challengeQueue;
 
 // ---- Audio (WebAudio, sin archivos) ----
 let audioCtx = null;
@@ -360,6 +357,7 @@ function clearLines(tspin) {
     updateComboHUD();
 
     updateSpeed();
+    queueChallenges();
     if (cleared === 4) pendingSingle = true;
     if (lines - lastPowerLines >= POWER_EVERY) {
       pendingPower = true;
@@ -370,7 +368,7 @@ function clearLines(tspin) {
 }
 
 function updateSpeed() {
-  level = (challenge?.startLevel || 1) + Math.floor(lines / 10);
+  level = Math.floor(lines / 10) + 1;
   dropInterval = Math.max(100, 1000 - (level - 1) * 90);
 }
 
@@ -379,14 +377,63 @@ function fmtTime(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-// Sube una fila de basura con un hueco. Si empuja bloques fuera del tablero: derrota.
-function addGarbage() {
+// Sube una fila por abajo. Si empuja bloques fuera del tablero: derrota.
+function pushRow(row) {
   if (board[0].some(v => v)) { endGame(); return; }
   board.shift();
-  const hole = Math.floor(Math.random() * COLS);
-  board.push(Array.from({ length: COLS }, (_, c) => c === hole ? 0 : GARBAGE));
+  board.push(row);
   while (collide(current.shape, current.x, current.y) && current.y > -4) current.y--;
   if (collide(current.shape, current.x, current.y)) endGame();
+}
+
+function addGarbage() {
+  const hole = Math.floor(Math.random() * COLS);
+  pushRow(Array.from({ length: COLS }, (_, c) => c === hole ? 0 : GARBAGE));
+}
+
+function addObstacleRow() {
+  const row = Array.from({ length: COLS }, () => Math.random() < 0.45 ? GARBAGE : 0);
+  row[Math.floor(Math.random() * COLS)] = 0; // nunca una fila ya completa
+  pushRow(row);
+}
+
+// Encola los desafíos cuyo nivel ya se alcanzó. Se inician en spawn() (no hay pieza en juego al fijar).
+function queueChallenges() {
+  CHALLENGES.forEach((c, i) => {
+    if (level >= c.level && !startedChallenges.has(i)) {
+      startedChallenges.add(i);
+      challengeQueue.push(i);
+    }
+  });
+}
+
+function startChallenge(idx) {
+  challengeIdx = idx;
+  challenge = CHALLENGES[idx];
+  elapsed = 0;
+  garbageAccum = 0;
+  revealLeft = 0;
+  challengeStartLines = lines;
+  addPopup(`DESAFÍO: ${challenge.name.toUpperCase()}`, '#ff8a65', 22);
+  addPopup(challenge.desc, '#e0e0e0', 13);
+  for (let i = 0; i < (challenge.prefill || 0); i++) addObstacleRow();
+  updateGoalHUD();
+}
+
+function endChallenge(success) {
+  if (success) {
+    const bonus = CHALLENGE_BONUS * level;
+    score += bonus;
+    addPopup('¡DESAFÍO SUPERADO!', '#81c784', 22);
+    addPopup(`+${bonus.toLocaleString()}`, '#ffd54f');
+    [0, 4, 7, 12].forEach((s, i) => tone(523.25 * Math.pow(2, s / 12), i * 0.08, 0.2, 'triangle', 0.08));
+  } else {
+    addPopup('DESAFÍO FALLIDO', '#e57373', 22);
+    tone(220, 0, 0.4, 'sawtooth', 0.05, 110);
+  }
+  challenge = null;
+  updateHUD();
+  updateGoalHUD();
 }
 
 function updateGoalHUD() {
@@ -397,7 +444,7 @@ function updateGoalHUD() {
   if (challenge.hideLocked) tags.push('piezas ocultas');
   goalDescEl.textContent = `${challengeIdx + 1} · ${challenge.name}${tags.length ? ' (' + tags.join(', ') + ')' : ''}`;
   const parts = [];
-  if (challenge.goalLines) parts.push(`${Math.min(lines, challenge.goalLines)}/${challenge.goalLines} líneas`);
+  if (challenge.goalLines) parts.push(`${Math.min(lines - challengeStartLines, challenge.goalLines)}/${challenge.goalLines} líneas`);
   const total = challenge.timeLimit || challenge.surviveMs;
   if (total) parts.push(`⏱ ${fmtTime(total - elapsed)}`);
   if (challenge.garbageEvery) parts.push(`🗑 ${Math.ceil((challenge.garbageEvery - garbageAccum) / 1000)}s`);
@@ -493,13 +540,14 @@ function lockPiece() {
   clearLines(tspin);
   lastMoveRotate = false;
   updateGoalHUD();
-  if (challenge?.goalLines && lines >= challenge.goalLines) { endGame(true, '¡NIVEL SUPERADO!'); return; }
+  if (challenge?.goalLines && lines - challengeStartLines >= challenge.goalLines) endChallenge(true);
   spawn();
 }
 
 function spawn() {
   current = next;
   next = randomPiece();
+  if (!challenge && challengeQueue.length) startChallenge(challengeQueue.shift());
   if (collide(current.shape, current.x, current.y)) {
     endGame();
   }
@@ -652,19 +700,17 @@ function drawNext() {
   nextCtx.restore();
 }
 
-function endGame(win = false, title = 'GAME OVER') {
+function endGame() {
   gameOver = true;
   cancelAnimationFrame(animId);
-  overlayTitle.textContent = title;
-  overlayTitle.classList.toggle('win', win);
+  overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
-  nextBtn.classList.toggle('hidden', !(win && challengeIdx < CHALLENGES.length - 1));
   overlay.classList.remove('hidden');
   draw(0);
 }
 
 function togglePause() {
-  if (gameOver || inMenu) return;
+  if (gameOver) return;
   paused = !paused;
   if (!paused) {
     lastTime = performance.now();
@@ -672,8 +718,6 @@ function togglePause() {
   } else {
     cancelAnimationFrame(animId);
     overlayTitle.textContent = 'PAUSA';
-    overlayTitle.classList.remove('win');
-    nextBtn.classList.add('hidden');
     overlayScore.textContent = '';
     overlay.classList.remove('hidden');
   }
@@ -700,10 +744,10 @@ function loop(ts) {
       }
     }
     if (!gameOver) {
-      if (challenge.surviveMs && elapsed >= challenge.surviveMs) endGame(true, '¡SOBREVIVISTE!');
-      else if (challenge.timeLimit && elapsed >= challenge.timeLimit) endGame(false, '¡SE ACABÓ EL TIEMPO!');
+      if (challenge.surviveMs && elapsed >= challenge.surviveMs) endChallenge(true);
+      else if (challenge.timeLimit && elapsed >= challenge.timeLimit) endChallenge(false);
     }
-    updateGoalHUD();
+    if (challenge) updateGoalHUD();
   }
   if (gameOver) return; // endGame ya dibujó el estado final
   if (dropAccum >= dropInterval) {
@@ -722,12 +766,6 @@ function loop(ts) {
 
 function init() {
   board = createBoard();
-  if (challenge?.prefill) {
-    for (let r = ROWS - challenge.prefill; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) if (Math.random() < 0.45) board[r][c] = GARBAGE;
-      board[r][Math.floor(Math.random() * COLS)] = 0; // nunca una fila ya completa
-    }
-  }
   score = 0;
   lines = 0;
   paused = false;
@@ -737,10 +775,11 @@ function init() {
   elapsed = 0;
   garbageAccum = 0;
   revealLeft = 0;
-  inMenu = false;
-  menuEl.classList.add('hidden');
-  overlayTitle.classList.remove('win');
-  nextBtn.classList.add('hidden');
+  challenge = null;
+  challengeIdx = null;
+  challengeStartLines = 0;
+  startedChallenges = new Set();
+  challengeQueue = [];
   pendingPower = false;
   pendingSingle = false;
   lastPowerLines = 0;
@@ -770,7 +809,7 @@ document.addEventListener('keydown', e => {
   ensureAudio(); // el navegador exige un gesto del usuario
   if (e.code === 'KeyM') { muted = !muted; return; }
   if (e.code === 'KeyP') { togglePause(); return; }
-  if (paused || gameOver || inMenu) return;
+  if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
       if (!collide(current.shape, current.x - 1, current.y)) { current.x--; lastMoveRotate = false; }
@@ -793,45 +832,7 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
-function startGame(idx) {
-  challengeIdx = idx;
-  challenge = idx === null ? null : CHALLENGES[idx];
-  init();
-}
-
-function showMenu() {
-  cancelAnimationFrame(animId);
-  inMenu = true;
-  continueBtn.classList.toggle('hidden', gameOver);
-  menuEl.classList.remove('hidden');
-}
-
-function buildMenu() {
-  const entries = [{ title: 'Clásico', desc: 'Sin objetivo: puntúa lo más alto', idx: null },
-    ...CHALLENGES.map((c, i) => ({ title: `${i + 1} · ${c.name}`, desc: c.desc, idx: i }))];
-  for (const e of entries) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn menu-item';
-    const t = document.createElement('span');
-    t.textContent = e.title;
-    const d = document.createElement('small');
-    d.textContent = e.desc;
-    btn.append(t, d);
-    btn.addEventListener('click', () => { btn.blur(); startGame(e.idx); });
-    menuList.append(btn);
-  }
-}
-
 restartBtn.addEventListener('click', init);
-nextBtn.addEventListener('click', () => startGame(challengeIdx + 1));
-menuBtn.addEventListener('click', () => { menuBtn.blur(); showMenu(); });
-document.getElementById('overlay-menu-btn').addEventListener('click', showMenu);
-continueBtn.addEventListener('click', () => {
-  inMenu = false;
-  menuEl.classList.add('hidden');
-  if (!paused && !gameOver) { lastTime = performance.now(); loop(lastTime); }
-});
 
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
@@ -845,7 +846,5 @@ themeBtn.addEventListener('click', () => {
 });
 
 applyTheme('dark');
-buildMenu();
 
 init();
-showMenu();

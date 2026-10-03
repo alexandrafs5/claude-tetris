@@ -50,7 +50,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
   - 🧲 **Gravedad** (15%): compacta los huecos del tablero.
   - ❄️ **Congelar** (15%): pausa la caída automática 5 s (puedes seguir moviendo).
   - Los bloques destruidos suman 10 puntos cada uno.
-- **Modo desafío** (menú **Modos**, arriba a la izquierda): 5 niveles con objetivo. 1 **Sprint**: 40 líneas en 2:00. 2 **Basura**: sobrevive 90 s con una fila de basura subiendo cada 10 s. 3 **Obstáculos**: 15 líneas con bloques precolocados. 4 **Fantasma**: 15 líneas, los bloques se ocultan tras fijar la pieza. 5 **Inversa**: 20 líneas con rotación inversa desde el nivel 6. Al ganar aparece **Siguiente nivel**.
+- **Desafíos por nivel**: al subir de nivel se activan retos con objetivo (panel OBJETIVO). Nivel 2 **Obstáculos** (15 líneas con bloques precolocados), 3 **Basura** (sobrevive 90 s con una fila de basura cada 10 s), 5 **Sprint** (40 líneas en 2:00), 6 **Fantasma** (15 líneas, los bloques se ocultan tras fijar la pieza), 8 **Inversa** (20 líneas con rotación inversa). Superarlo da bono de 1000 × nivel; fallar solo pierde el bono y el juego sigue. Si se solapan, se encolan.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Toggle de tema** claro/oscuro (botón arriba a la derecha; por defecto modo oscuro).
 

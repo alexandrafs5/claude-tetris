@@ -4,11 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tetris</title>
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <button id="theme-toggle" type="button" aria-label="Cambiar tema">☀️ Claro</button>
-  <button id="menu-btn" type="button" aria-label="Menú de modos">☰ Modos</button>
   <main class="app">
   <h1 class="title">TETRIS</h1>
   <div class="wrapper">
@@ -69,22 +68,13 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
-        <button id="next-btn" class="btn hidden">Siguiente nivel</button>
         <button id="restart-btn" class="btn">Reiniciar</button>
-        <button id="overlay-menu-btn" class="btn btn-alt">Modos</button>
       </div>
     </div>
 
-    <div id="menu" class="overlay hidden">
-      <div class="overlay-box menu-box">
-        <p class="menu-title">MODOS</p>
-        <div id="menu-list"></div>
-        <button id="continue-btn" class="btn btn-alt hidden">Continuar</button>
-      </div>
-    </div>
   </div>
   </main>
 
-  <script src="game.js?v=5"></script>
+  <script src="game.js?v=6"></script>
 </body>
 </html>

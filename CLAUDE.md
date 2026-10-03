@@ -34,11 +34,11 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 - T-spin: `isTSpin()` (3-corner rule) is called in `lockPiece` before `merge`; `lastMoveRotate` is set by `tryRotate` and cleared by any move/drop.
 - Effects (`popups`, `particles`, `flashRows`, shake) are drawn in `drawEffects` inside `draw(dt)`; audio is WebAudio (`tone`, `playClearSound`), unlocked on first keydown; `M` mutes.
 
-## Challenge mode
+## Challenges
 
-- `CHALLENGES` array (config flags: `goalLines`, `surviveMs`, `timeLimit`, `garbageEvery`, `prefill`, `hideLocked`, `reverseRot`, `startLevel`). `challenge` global is `null` in classic. `startGame(idx)` sets it then `init()`; Restart button re-runs `init()` keeping mode.
-- Timers (`elapsed`, `garbageAccum`) advance in `loop`; win/lose via `endGame(win, title)`. Lines goal is checked in `lockPiece` after `clearLines`.
-- Cell `GARBAGE`=15 (garbage rows / prefilled obstacles). Menu overlay (`#menu`, `inMenu` flag blocks keys/pause) opens on load.
+- `CHALLENGES` entries trigger when `level` first reaches `c.level` (`queueChallenges` in `clearLines` → `challengeQueue`; `spawn` calls `startChallenge` when none active, since no piece is in play at lock time). Config flags: `goalLines`, `surviveMs`, `timeLimit`, `garbageEvery`, `prefill`, `hideLocked`, `reverseRot`. `challenge` global = active one, `null` otherwise; reset by `init()`.
+- `loop` advances `elapsed`/`garbageAccum`; lines goal checked in `lockPiece` (relative to `challengeStartLines`). `endChallenge(success)`: bonus `CHALLENGE_BONUS`×level on success; failure only a popup, game continues. Only `endGame` ends the run.
+- Cell `GARBAGE`=15 via `pushRow` (garbage rows, obstacle rows). Objective panel `#goal-section` shown only while a challenge is active.
 
 ## Gotchas
 
