@@ -185,6 +185,8 @@ Algunos parámetros fáciles de tunear en `game.js`:
 
 El workflow `.github/workflows/claude-issue-triage.yml` analiza con Claude cada issue al crearse o editarse (título/cuerpo). Asigna labels y publica un único comentario de diagnóstico (resumen, archivos afectados, causa probable, pasos sugeridos) que se actualiza en cada edición. Usa el secret `CLAUDE_CODE_OAUTH_TOKEN`.
 
+Si el autor del issue es `OWNER`, `MEMBER` o `COLLABORATOR` y el issue pide un cambio concreto, Claude también modifica el código y sube un commit a la rama `claude/issue-<número>` (nuevo commit en cada edición, sin force-push). No abre PR: el comentario incluye un link para abrirlo a mano. Para otros autores solo hay labels y diagnóstico. El workflow necesita permiso `contents: write`.
+
 Labels gestionados: `bug`, `enhancement`, `question`, `documentation`, `area:gameplay`, `area:ui`, `area:controls`, `area:performance`, `priority:high`, `priority:medium`, `priority:low`, `needs-info`.
 
 ---
