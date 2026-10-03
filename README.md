@@ -40,6 +40,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Pieza fantasma** (_ghost piece_): muestra dónde aterrizará la pieza actual.
 - **Vista previa** de la siguiente pieza.
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
+- **Combo y multiplicadores**: limpiar líneas en piezas consecutivas multiplica el puntaje (x2, x3, … hasta x10); un bloque sin limpiar rompe la cadena. **T-spin** (rotar una T y encajarla con ≥3 esquinas ocupadas) puntúa 400/800/1200/1600 por 0–3 líneas. **B2B**: Tetris o T-spin seguidos ×1.5. **Perfect clear** (tablero vacío): +2000 × nivel. Efectos visuales (textos, partículas, sacudida) y sonido que sube de tono con el combo.
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Piezas no estándar**: ~12% de las piezas son especiales: pentominós **+**, **U** y **Y** (5 bloques) o un **cuadro 3×3 hueco** (8 bloques, más raro). Tras un **Tetris** (4 líneas a la vez) la siguiente pieza es un **single 1×1** de recompensa.
 - **Power-ups**: cada 5 líneas eliminadas la siguiente pieza es especial (1 bloque con icono, visible en NEXT). Equivale a ~1 de cada 12 piezas. Efecto al aterrizar, tipo al azar con pesos:
@@ -94,6 +95,7 @@ Después abre `http://localhost:8000` en el navegador.
 | `↓`       | Soft drop (bajar más rápido)      |
 | `Espacio` | Hard drop (caída instantánea)     |
 | `P`       | Pausar / reanudar                 |
+| `M`       | Silenciar / activar sonido        |
 
 ---
 

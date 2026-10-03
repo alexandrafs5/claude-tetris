@@ -28,6 +28,12 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 - Cell `WILD`=9 (from tint) lives in the board; `isRowComplete` lets wilds cover up to `MAX_WILD_FILL` holes. `COLORS` has entries 8–9 with no `PIECES` counterpart.
 - Freeze: `freezeLeft` ms stops `dropAccum` in `loop`; status shown in `#power-status`.
 
+## Combo / scoring
+
+- `clearLines(tspin)` computes score: base (`LINE_SCORES` or `TSPIN_SCORES`) × `B2B_FACTOR` (if `b2b` and difficult clear) × level × combo mult (`combo` capped `MAX_COMBO_MULT`), plus `PERFECT_BONUS`. No clear → `combo = 0`; `b2b` only resets on a non-difficult clear.
+- T-spin: `isTSpin()` (3-corner rule) is called in `lockPiece` before `merge`; `lastMoveRotate` is set by `tryRotate` and cleared by any move/drop.
+- Effects (`popups`, `particles`, `flashRows`, shake) are drawn in `drawEffects` inside `draw(dt)`; audio is WebAudio (`tone`, `playClearSound`), unlocked on first keydown; `M` mutes.
+
 ## Gotchas
 
 - `index.html` loads `style.css?v=N` and `game.js?v=N` (GitHub Pages caches 10 min). Bump `N` in both when changing either file.

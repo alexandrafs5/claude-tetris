@@ -63,6 +63,14 @@ const SINGLE = 13;
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
+// Combo y multiplicadores
+const TSPIN_SCORES = [400, 800, 1200, 1600]; // T-spin con 0..3 líneas
+const LINE_NAMES = ['', 'SENCILLO', 'DOBLE', 'TRIPLE', 'TETRIS'];
+const MAX_COMBO_MULT = 10;   // tope del multiplicador (x2, x3, ... x10)
+const B2B_FACTOR = 1.5;      // Tetris/T-spin seguidos (sin clears "fáciles" entre medio)
+const PERFECT_BONUS = 2000;  // × nivel
+const SEMITONES = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21]; // escala pentatónica por combo
+
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-canvas');
@@ -76,11 +84,82 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
 const powerEl = document.getElementById('power-status');
+const comboEl = document.getElementById('combo-status');
 
 let gridColor = '#22222e';
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let pendingPower, pendingSingle, lastPowerLines, freezeLeft, powerMsgTimer;
+let combo, b2b, lastMoveRotate; // combo = clears consecutivos; b2b = último clear fue difícil
+let popups, particles, flashRows, shakeLeft, shakePower, perfectFlash;
+
+// ---- Audio (WebAudio, sin archivos) ----
+let audioCtx = null;
+let muted = false;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function tone(freq, delay, dur, type = 'square', vol = 0.06, slideTo) {
+  if (muted || !audioCtx) return;
+  const t = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.02);
+}
+
+const noteFreq = i => 523.25 * Math.pow(2, SEMITONES[Math.min(i, SEMITONES.length - 1)] / 12);
+
+function playClearSound(cleared, mult, tspin, b2bHit, perfect) {
+  const f = noteFreq(mult - 1);
+  tone(f, 0, 0.14);
+  tone(f * 1.5, 0.07, 0.18);
+  if (cleared >= 4) tone(f * 2, 0.14, 0.25, 'triangle', 0.08);
+  if (tspin) tone(300, 0, 0.3, 'sawtooth', 0.05, 1200);
+  if (b2bHit) tone(f * 2, 0.2, 0.2, 'sine', 0.08);
+  if (perfect) [0, 4, 7, 12, 16, 19, 24].forEach((s, i) =>
+    tone(523.25 * Math.pow(2, s / 12), 0.25 + i * 0.07, 0.25, 'triangle', 0.08));
+}
+
+// ---- Efectos visuales ----
+function addPopup(text, color, size = 18) {
+  popups.push({ text, color, size, age: 0, life: 1400, y: 190 + popups.length * 30 });
+}
+
+function burst(row, count, mult) {
+  const hues = ['#ffd54f', '#ff8a65', '#f48fb1', '#4dd0e1', '#81c784'];
+  for (let i = 0; i < count; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const sp = 80 + Math.random() * 160 + mult * 12;
+    particles.push({
+      x: Math.random() * COLS * BLOCK, y: row * BLOCK + BLOCK / 2,
+      vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 60,
+      age: 0, life: 500 + Math.random() * 400,
+      color: hues[Math.floor(Math.random() * hues.length)],
+    });
+  }
+}
+
+function updateComboHUD() {
+  const mult = Math.min(combo, MAX_COMBO_MULT);
+  const parts = [];
+  if (combo >= 2) parts.push(`x${mult}`);
+  if (b2b) parts.push('B2B');
+  comboEl.textContent = parts.join(' ') || '—';
+  comboEl.classList.toggle('hot', combo >= 2);
+}
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -161,6 +240,7 @@ function tryRotate() {
     if (!collide(rotated, current.x + kick, current.y)) {
       current.shape = rotated;
       current.x += kick;
+      lastMoveRotate = true;
       return;
     }
   }
@@ -183,19 +263,72 @@ function isRowComplete(row) {
   return empty <= Math.min(wild, MAX_WILD_FILL);
 }
 
-function clearLines() {
+// T-spin (regla de 3 esquinas): la última acción fue rotar una T y ≥3 esquinas del centro están ocupadas.
+function isTSpin() {
+  if (current.type !== 3 || !lastMoveRotate) return false;
+  const cx = current.x + 1, cy = current.y + 1;
+  let filled = 0;
+  for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const x = cx + dx, y = cy + dy;
+    if (x < 0 || x >= COLS || y >= ROWS || (y >= 0 && board[y][x])) filled++;
+  }
+  return filled >= 3;
+}
+
+function clearLines(tspin) {
   let cleared = 0;
+  const clearedRows = [];
   for (let r = ROWS - 1; r >= 0; r--) {
     if (isRowComplete(board[r])) {
+      clearedRows.push(r - cleared); // fila original
       board.splice(r, 1);
       board.unshift(new Array(COLS).fill(0));
       cleared++;
       r++;
     }
   }
+  if (!cleared) {
+    combo = 0; // se rompe la cadena
+    if (tspin) {
+      score += TSPIN_SCORES[0] * level;
+      addPopup('T-SPIN', '#ba68c8', 22);
+      addPopup(`+${TSPIN_SCORES[0] * level}`, '#ffd54f');
+      playClearSound(0, 1, true, false, false);
+      updateHUD();
+    }
+    updateComboHUD();
+    return;
+  }
   if (cleared) {
     lines += cleared;
-    score += (LINE_SCORES[cleared] || 0) * level;
+
+    // Puntuación: base (líneas o T-spin) × B2B × combo, + perfect clear
+    const difficult = cleared === 4 || tspin;
+    const b2bHit = difficult && b2b;
+    b2b = difficult ? true : false;
+    combo++;
+    const mult = Math.min(combo, MAX_COMBO_MULT);
+    let base = tspin ? TSPIN_SCORES[Math.min(cleared, 3)] : (LINE_SCORES[cleared] || 0);
+    if (b2bHit) base *= B2B_FACTOR;
+    let gained = Math.round(base * level * mult);
+    const perfect = board.every(row => row.every(v => !v));
+    if (perfect) gained += PERFECT_BONUS * level;
+    score += gained;
+
+    // Feedback
+    addPopup((tspin ? 'T-SPIN ' : '') + LINE_NAMES[cleared], tspin ? '#ba68c8' : '#4dd0e1', 22);
+    if (combo >= 2) addPopup(`COMBO x${mult}`, '#ff8a65', 20);
+    if (b2bHit) addPopup(`B2B x${B2B_FACTOR}`, '#f48fb1');
+    if (perfect) addPopup('PERFECT CLEAR!', '#ffd54f', 24);
+    addPopup(`+${gained.toLocaleString()}`, '#ffd54f');
+    clearedRows.forEach(r => burst(r, 14 + mult * 3, mult));
+    flashRows = clearedRows.map(r => ({ r, age: 0 }));
+    shakeLeft = 150 + (cleared >= 4 || tspin ? 150 : 0) + (perfect ? 200 : 0);
+    shakePower = 2 + Math.min(combo, 6) + (cleared >= 4 ? 2 : 0);
+    if (perfect) perfectFlash = 600;
+    playClearSound(cleared, mult, tspin, b2bHit, perfect);
+    updateComboHUD();
+
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
     if (cleared === 4) pendingSingle = true;
@@ -268,6 +401,7 @@ function ghostY() {
 function hardDrop() {
   const gy = ghostY();
   score += (gy - current.y) * 2;
+  if (gy > current.y) lastMoveRotate = false;
   current.y = gy;
   lockPiece();
 }
@@ -275,6 +409,7 @@ function hardDrop() {
 function softDrop() {
   if (!collide(current.shape, current.x, current.y + 1)) {
     current.y++;
+    lastMoveRotate = false;
     score += 1;
     updateHUD();
   } else {
@@ -283,9 +418,14 @@ function softDrop() {
 }
 
 function lockPiece() {
+  let tspin = false;
   if (current.power) applyPower(current);
-  else merge();
-  clearLines();
+  else {
+    tspin = isTSpin(); // antes de fusionar con el tablero
+    merge();
+  }
+  clearLines(tspin);
+  lastMoveRotate = false;
   spawn();
 }
 
@@ -341,8 +481,61 @@ function drawGrid() {
   }
 }
 
-function draw() {
+function drawEffects(dt) {
+  // flash de filas limpiadas
+  flashRows = flashRows.filter(f => (f.age += dt) < 200);
+  for (const f of flashRows) {
+    ctx.fillStyle = `rgba(255,255,255,${0.7 * (1 - f.age / 200)})`;
+    ctx.fillRect(0, f.r * BLOCK, COLS * BLOCK, BLOCK);
+  }
+
+  // partículas
+  particles = particles.filter(p => (p.age += dt) < p.life);
+  for (const p of particles) {
+    const s = dt / 1000;
+    p.vy += 500 * s;
+    p.x += p.vx * s;
+    p.y += p.vy * s;
+    ctx.globalAlpha = 1 - p.age / p.life;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+  }
+  ctx.globalAlpha = 1;
+
+  // flash de perfect clear
+  if (perfectFlash > 0) {
+    perfectFlash -= dt;
+    ctx.fillStyle = `rgba(255,213,79,${0.5 * Math.max(0, perfectFlash) / 600})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // textos flotantes
+  popups = popups.filter(p => (p.age += dt) < p.life);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const p of popups) {
+    const t = p.age / p.life;
+    const pop = t < 0.1 ? 0.6 + 4 * t : 1; // pequeño "rebote" al aparecer
+    ctx.globalAlpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
+    ctx.font = `800 ${Math.round(p.size * pop)}px system-ui, sans-serif`;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+    ctx.strokeText(p.text, canvas.width / 2, p.y - t * 30);
+    ctx.fillStyle = p.color;
+    ctx.fillText(p.text, canvas.width / 2, p.y - t * 30);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function draw(dt = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  if (shakeLeft > 0) {
+    shakeLeft -= dt;
+    const k = Math.max(0, shakeLeft) / 300;
+    ctx.translate((Math.random() - 0.5) * shakePower * 2 * Math.min(1, k + 0.3),
+                  (Math.random() - 0.5) * shakePower * 2 * Math.min(1, k + 0.3));
+  }
   drawGrid();
 
   // board
@@ -361,6 +554,9 @@ function draw() {
   for (let r = 0; r < current.shape.length; r++)
     for (let c = 0; c < current.shape[r].length; c++)
       drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK, 1, iconOf(current));
+
+  drawEffects(dt);
+  ctx.restore();
 }
 
 function drawNext() {
@@ -422,11 +618,12 @@ function loop(ts) {
     dropAccum = 0;
     if (!collide(current.shape, current.x, current.y + 1)) {
       current.y++;
+      lastMoveRotate = false;
     } else {
       lockPiece();
     }
   }
-  draw();
+  draw(Math.min(dt, 50));
   if (gameOver) return; // endGame ocurrió dentro de este frame: no re-agendar el loop
   animId = requestAnimationFrame(loop);
 }
@@ -444,6 +641,16 @@ function init() {
   pendingSingle = false;
   lastPowerLines = 0;
   freezeLeft = 0;
+  combo = 0;
+  b2b = false;
+  lastMoveRotate = false;
+  popups = [];
+  particles = [];
+  flashRows = [];
+  shakeLeft = 0;
+  shakePower = 0;
+  perfectFlash = 0;
+  updateComboHUD();
   setPowerMsg('');
   lastTime = performance.now();
   next = randomPiece();
@@ -455,14 +662,16 @@ function init() {
 }
 
 document.addEventListener('keydown', e => {
+  ensureAudio(); // el navegador exige un gesto del usuario
+  if (e.code === 'KeyM') { muted = !muted; return; }
   if (e.code === 'KeyP') { togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
-      if (!collide(current.shape, current.x - 1, current.y)) current.x--;
+      if (!collide(current.shape, current.x - 1, current.y)) { current.x--; lastMoveRotate = false; }
       break;
     case 'ArrowRight':
-      if (!collide(current.shape, current.x + 1, current.y)) current.x++;
+      if (!collide(current.shape, current.x + 1, current.y)) { current.x++; lastMoveRotate = false; }
       break;
     case 'ArrowDown':
       softDrop();
