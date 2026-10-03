@@ -168,7 +168,7 @@ kbd {
 }
 
 /* ---- Toggle de tema ---- */
-#theme-toggle {
+#theme-toggle, #menu-btn {
   position: fixed;
   top: 16px;
   right: 16px;
@@ -182,7 +182,12 @@ kbd {
   cursor: pointer;
 }
 
-#theme-toggle:hover {
+#menu-btn {
+  right: auto;
+  left: 16px;
+}
+
+#theme-toggle:hover, #menu-btn:hover {
   border-color: var(--accent);
 }
 
@@ -223,7 +228,8 @@ kbd {
   color: var(--accent);
 }
 
-#restart-btn {
+/* ---- Botones ---- */
+.btn {
   margin-top: 8px;
   background: var(--accent);
   color: var(--accent-text);
@@ -237,6 +243,66 @@ kbd {
   transition: background 0.15s;
 }
 
-#restart-btn:hover {
+.btn:hover {
   background: var(--accent-hover);
+}
+
+.btn.hidden, .panel-section.hidden {
+  display: none;
+}
+
+.btn-alt {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.btn-alt:hover {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+#overlay-title.win {
+  color: #81c784;
+}
+
+/* ---- Modo desafío ---- */
+.goal-desc {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.value.goal-status {
+  font-size: 16px;
+  min-height: 1.2em;
+}
+
+.menu-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+#menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 270px;
+  margin-top: 0;
+  padding: 8px 16px;
+  text-align: left;
+}
+
+.menu-item small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.85;
 }

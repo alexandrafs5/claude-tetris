@@ -34,9 +34,15 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 - T-spin: `isTSpin()` (3-corner rule) is called in `lockPiece` before `merge`; `lastMoveRotate` is set by `tryRotate` and cleared by any move/drop.
 - Effects (`popups`, `particles`, `flashRows`, shake) are drawn in `drawEffects` inside `draw(dt)`; audio is WebAudio (`tone`, `playClearSound`), unlocked on first keydown; `M` mutes.
 
+## Challenge mode
+
+- `CHALLENGES` array (config flags: `goalLines`, `surviveMs`, `timeLimit`, `garbageEvery`, `prefill`, `hideLocked`, `reverseRot`, `startLevel`). `challenge` global is `null` in classic. `startGame(idx)` sets it then `init()`; Restart button re-runs `init()` keeping mode.
+- Timers (`elapsed`, `garbageAccum`) advance in `loop`; win/lose via `endGame(win, title)`. Lines goal is checked in `lockPiece` after `clearLines`.
+- Cell `GARBAGE`=15 (garbage rows / prefilled obstacles). Menu overlay (`#menu`, `inMenu` flag blocks keys/pause) opens on load.
+
 ## Gotchas
 
 - `index.html` loads `style.css?v=N` and `game.js?v=N` (GitHub Pages caches 10 min). Bump `N` in both when changing either file.
 - Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and centers the piece's bounding box in the canvas.
-- Level/speed formula is duplicated in `clearLines` and the initial `1000` in `init`.
+- Level/speed formula lives in `updateSpeed()` (called by `init` and `clearLines`).
 - `README.md` says "~300 lines" and documents controls/scoring; keep in sync if mechanics change.
