@@ -66,7 +66,6 @@ const ABILITIES = [
   { id: 'swap', icon: '🔄', label: 'Intercambio', desc: 'Cambiar la pieza actual por otra' },
   { id: 'slow', icon: '⏳', label: 'Lentitud',    desc: 'Ralentizar la caída 10 s' },
   { id: 'undo', icon: '↩️', label: 'Deshacer',    desc: 'Deshacer la última colocación' },
-  { id: 'hold', icon: '📦', label: 'Reserva',     desc: 'Guardar la pieza (o intercambiarla)' },
 ];
 const SWAP_NAMES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L']; // tipo = índice + 1
 
@@ -143,7 +142,7 @@ let combo, b2b, lastMoveRotate; // combo = clears consecutivos; b2b = último cl
 let popups, particles, flashRows, shakeLeft, shakePower, perfectFlash;
 let challengeIdx = null, challenge = null; // desafío activo (null = juego normal)
 let elapsed, garbageAccum, revealLeft, challengeStartLines, startedChallenges, challengeQueue;
-let queue, held, energy, peekLeft, slowLeft, undoSnap, menuOpen, menuMode; // next === queue[0]
+let queue, held, holdUsed, energy, peekLeft, slowLeft, undoSnap, menuOpen, menuMode; // next === queue[0]
 
 // ---- Audio (WebAudio, sin archivos) ----
 let audioCtx = null;
@@ -573,7 +572,7 @@ function gainEnergy(cleared) {
 function saveUndo() {
   undoSnap = {
     board: board.map(r => [...r]), piece: resetPiece(current), queue: queue.map(resetPiece),
-    score, lines, combo, b2b, pendingPower, pendingSingle, lastPowerLines, freezeLeft, peekLeft,
+    holdUsed, score, lines, combo, b2b, pendingPower, pendingSingle, lastPowerLines, freezeLeft, peekLeft,
     challenge, challengeIdx, challengeStartLines,
     started: new Set(startedChallenges), cq: [...challengeQueue],
   };
@@ -587,7 +586,7 @@ function undoPlacement() {
   current = s.piece;
   queue = s.queue;
   next = queue[0];
-  ({ score, lines, combo, b2b, pendingPower, pendingSingle, lastPowerLines, freezeLeft, peekLeft } = s);
+  ({ holdUsed, score, lines, combo, b2b, pendingPower, pendingSingle, lastPowerLines, freezeLeft, peekLeft } = s);
   ({ challenge, challengeIdx, challengeStartLines } = s);
   startedChallenges = s.started;
   challengeQueue = s.cq;
@@ -601,10 +600,13 @@ function undoPlacement() {
   updateGoalHUD();
   drawNext();
   drawPeek();
+  drawHold();
   return true;
 }
 
+// Reserva (C / Shift): una vez por pieza; se desbloquea en spawn() al fijarse la pieza.
 function holdPiece() {
+  if (holdUsed) return false;
   if (!held) {
     held = resetPiece(current);
     spawn();
@@ -614,7 +616,9 @@ function holdPiece() {
     held = resetPiece(current);
     current = swapped;
   }
+  holdUsed = true;
   lastMoveRotate = false;
+  dropAccum = 0;
   drawHold();
   return true;
 }
@@ -645,7 +649,6 @@ function runAbility(id) {
       updateAbilityHUD();
       return true;
     case 'undo': return undoPlacement();
-    case 'hold': return holdPiece();
   }
   return false;
 }
@@ -702,7 +705,7 @@ function renderMenu(msg = '') {
     abilityTitle.textContent = 'HABILIDAD';
     ABILITIES.forEach((a, i) =>
       abilityList.appendChild(menuButton(i + 1, a.icon, a.label, a.desc, () => pickMenu(i), a.id === 'undo' && !undoSnap)));
-    abilityHint.textContent = msg || '1–5 elegir · Esc cancelar';
+    abilityHint.textContent = msg || `1–${ABILITIES.length} elegir · Esc cancelar`;
   }
 }
 
@@ -771,6 +774,7 @@ function lockPiece() {
 }
 
 function spawn() {
+  holdUsed = false;
   current = queue.shift();
   if (peekLeft > 0) peekLeft--;
   refillQueue();
@@ -780,6 +784,7 @@ function spawn() {
   }
   drawNext();
   drawPeek();
+  drawHold();
 }
 
 function updateHUD() {
@@ -943,6 +948,7 @@ function drawPeek() {
 function drawHold() {
   holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
   if (held) drawPieceCentered(holdCtx, held, 0, 0, holdCanvas.width, holdCanvas.height, 20);
+  holdCanvas.classList.toggle('locked', !!holdUsed);
 }
 
 function endGame() {
@@ -1043,6 +1049,7 @@ function init() {
   shakePower = 0;
   perfectFlash = 0;
   held = null;
+  holdUsed = false;
   energy = 0;
   peekLeft = 0;
   slowLeft = 0;
@@ -1084,6 +1091,11 @@ document.addEventListener('keydown', e => {
   switch (e.code) {
     case 'KeyE':
       openMenu();
+      break;
+    case 'KeyC':
+    case 'ShiftLeft':
+    case 'ShiftRight':
+      holdPiece();
       break;
     case 'ArrowLeft':
       if (!collide(current.shape, current.x - 1, current.y)) { current.x--; lastMoveRotate = false; }

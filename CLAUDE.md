@@ -42,9 +42,9 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 
 ## Abilities
 
-- `energy` (0–`ENERGY_MAX`) grows `ENERGY_PER_LINE` per cleared line (`gainEnergy` in `clearLines`). `E` → `openMenu` (needs full bar) cancels rAF; `closeMenu` restarts it. `ABILITIES` list; `menuMode` `'main'|'swap'`; keys 1–5 / 1–7, `Esc`.
+- `energy` (0–`ENERGY_MAX`) grows `ENERGY_PER_LINE` per cleared line (`gainEnergy` in `clearLines`). `E` → `openMenu` (needs full bar) cancels rAF; `closeMenu` restarts it. `ABILITIES` list; `menuMode` `'main'|'swap'`; keys 1–4 / 1–7, `Esc`.
 - `next` is `queue[0]`; `spawn` shifts `queue`, `refillQueue` tops it up (pending power/single inserted at front; `peekLeft` > 0 keeps `PEEK_COUNT` queued).
-- `saveUndo()` runs at start of `lockPiece` (board, score, queue, combo, challenge state; not challenge clock). `undoPlacement` restores it. `held` = hold slot. `slowLeft` multiplies drop interval by `SLOW_FACTOR` in `loop`.
+- `saveUndo()` runs at start of `lockPiece` (board, score, queue, combo, challenge state; not challenge clock). `undoPlacement` restores it. `held` = hold slot, free mechanic (`C`/`Shift` → `holdPiece`, not an ability); `holdUsed` limits it to once per piece (reset in `spawn`, saved in undo snapshot, dims `#hold-canvas` via `.locked`). `slowLeft` multiplies drop interval by `SLOW_FACTOR` in `loop`.
 
 ## Gotchas
 
