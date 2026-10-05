@@ -1073,8 +1073,11 @@ function init() {
   animId = requestAnimationFrame(loop);
 }
 
+const GAME_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space']);
+
 document.addEventListener('keydown', e => {
   ensureAudio(); // el navegador exige un gesto del usuario
+  if (GAME_KEYS.has(e.code)) e.preventDefault(); // evita el scroll de la página
   if (e.code === 'KeyM') { muted = !muted; return; }
   if (menuOpen) {
     const n = parseInt(e.key, 10);
@@ -1111,7 +1114,6 @@ document.addEventListener('keydown', e => {
       tryRotate();
       break;
     case 'Space':
-      e.preventDefault();
       hardDrop();
       break;
   }

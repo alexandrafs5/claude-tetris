@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tetris</title>
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <button id="theme-toggle" type="button" aria-label="Cambiar tema">☀️ Claro</button>
@@ -12,9 +12,11 @@
   <h1 class="title">TETRIS</h1>
   <div class="wrapper">
     <div class="game-container">
-      <canvas id="board" width="300" height="600"></canvas>
-
-      <aside class="panel">
+      <aside class="panel panel-left">
+        <div class="panel-section">
+          <span class="label">HOLD</span>
+          <canvas id="hold-canvas" width="120" height="80"></canvas>
+        </div>
         <div class="panel-section">
           <span class="label">SCORE</span>
           <span class="value" id="score">0</span>
@@ -26,45 +28,6 @@
         <div class="panel-section">
           <span class="label">LEVEL</span>
           <span class="value" id="level">1</span>
-        </div>
-
-        <div class="panel-section hidden" id="goal-section">
-          <span class="label">OBJETIVO</span>
-          <span class="goal-desc" id="goal-desc"></span>
-          <span class="value goal-status" id="goal-status">—</span>
-          <span class="value goal-status" id="timer-status"></span>
-        </div>
-
-        <div class="panel-section">
-          <span class="label">POWER</span>
-          <span class="value power-status" id="power-status">—</span>
-        </div>
-
-        <div class="panel-section">
-          <span class="label">COMBO</span>
-          <span class="value combo-status" id="combo-status">—</span>
-        </div>
-
-        <div class="panel-section">
-          <span class="label">ENERGÍA</span>
-          <div class="energy-bar" id="energy-bar"><div class="energy-fill" id="energy-fill"></div></div>
-          <span class="energy-hint" id="energy-hint">0%</span>
-          <span class="value power-status" id="ability-status">—</span>
-        </div>
-
-        <div class="panel-section">
-          <span class="label">NEXT</span>
-          <canvas id="next-canvas" width="120" height="120"></canvas>
-        </div>
-
-        <div class="panel-section hidden" id="peek-section">
-          <span class="label">PRÓXIMAS 5</span>
-          <canvas id="peek-canvas" width="150" height="40"></canvas>
-        </div>
-
-        <div class="panel-section">
-          <span class="label">HOLD</span>
-          <canvas id="hold-canvas" width="120" height="80"></canvas>
         </div>
 
         <div class="panel-section controls">
@@ -79,6 +42,44 @@
             <li><kbd>P</kbd> pausa</li>
             <li><kbd>M</kbd> silencio</li>
           </ul>
+        </div>
+      </aside>
+
+      <canvas id="board" width="300" height="600"></canvas>
+
+      <aside class="panel panel-right">
+        <div class="panel-section">
+          <span class="label">NEXT</span>
+          <canvas id="next-canvas" width="120" height="120"></canvas>
+        </div>
+
+        <div class="panel-section hidden" id="peek-section">
+          <span class="label">PRÓXIMAS 5</span>
+          <canvas id="peek-canvas" width="150" height="40"></canvas>
+        </div>
+
+        <div class="panel-section">
+          <span class="label">ENERGÍA</span>
+          <div class="energy-bar" id="energy-bar"><div class="energy-fill" id="energy-fill"></div></div>
+          <span class="energy-hint" id="energy-hint">0%</span>
+          <span class="value power-status" id="ability-status">—</span>
+        </div>
+
+        <div class="panel-section">
+          <span class="label">COMBO</span>
+          <span class="value combo-status" id="combo-status">—</span>
+        </div>
+
+        <div class="panel-section">
+          <span class="label">POWER</span>
+          <span class="value power-status" id="power-status">—</span>
+        </div>
+
+        <div class="panel-section hidden" id="goal-section">
+          <span class="label">OBJETIVO</span>
+          <span class="goal-desc" id="goal-desc"></span>
+          <span class="value goal-status" id="goal-status">—</span>
+          <span class="value goal-status" id="timer-status"></span>
         </div>
       </aside>
     </div>
@@ -102,6 +103,6 @@
   </div>
   </main>
 
-  <script src="game.js?v=8"></script>
+  <script src="game.js?v=9"></script>
 </body>
 </html>

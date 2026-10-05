@@ -58,11 +58,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: 12px;
   padding-left: 12px; /* compensa el letter-spacing final para centrar */
@@ -81,6 +81,9 @@ body {
 
 #board {
   display: block;
+  height: min(600px, calc(100vh - 110px)); /* escala al alto de la ventana; el canvas conserva 300×600 internos */
+  width: auto;
+  aspect-ratio: 1 / 2;
   border: 1px solid var(--board-border);
   background: var(--board-bg);
   border-radius: 4px;
@@ -89,11 +92,24 @@ body {
 
 /* ---- Panel lateral ---- */
 .panel {
-  width: 160px;
+  width: 150px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   padding-top: 4px;
+}
+
+.panel-left {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.panel-left .panel-section {
+  align-items: flex-end;
+}
+
+.panel-left .controls li {
+  justify-content: flex-end;
 }
 
 .panel-section {
@@ -154,11 +170,11 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .controls li {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -347,4 +363,20 @@ kbd {
 .value.goal-status {
   font-size: 16px;
   min-height: 1.2em;
+}
+
+/* ---- Pantallas estrechas: paneles debajo del tablero ---- */
+@media (max-width: 640px) {
+  .game-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #board {
+    order: -1;
+  }
+
+  .panel {
+    width: calc(50% - 10px);
+  }
 }

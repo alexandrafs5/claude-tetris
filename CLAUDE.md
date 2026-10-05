@@ -48,6 +48,7 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 
 ## Gotchas
 
+- Layout: `[.panel-left][#board][.panel-right]`; board is CSS-scaled (`height: min(600px, 100vh - 110px)`), internal canvas stays `300×600`. `keydown` `preventDefault`s `GAME_KEYS` (arrows/Space) so page never scrolls.
 - `index.html` loads `style.css?v=N` and `game.js?v=N` (GitHub Pages caches 10 min). Bump `N` in both when changing either file.
 - Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and centers the piece's bounding box in the canvas.
 - Level/speed formula lives in `updateSpeed()` (called by `init` and `clearLines`).
