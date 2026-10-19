@@ -129,12 +129,19 @@ const peekCanvas = document.getElementById('peek-canvas');
 const peekCtx = peekCanvas.getContext('2d');
 const holdCanvas = document.getElementById('hold-canvas');
 const holdCtx = holdCanvas.getContext('2d');
+const pauseMenu = document.getElementById('pause-menu');
+const pauseItems = [...pauseMenu.querySelectorAll('.pause-item')];
+const pauseControls = document.getElementById('pause-controls');
+const startLevelEl = document.getElementById('start-level');
 const abilityMenu = document.getElementById('ability-menu');
 const abilityTitle = document.getElementById('ability-title');
 const abilityList = document.getElementById('ability-list');
 const abilityHint = document.getElementById('ability-hint');
 
 let gridColor = '#22222e';
+const MAX_START_LEVEL = 10;
+let startLevel = 1;    // nivel con el que empieza la próxima partida (se elige en el menú de pausa)
+let pauseSel = 0;
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let pendingPower, pendingSingle, lastPowerLines, freezeLeft, powerMsgTimer;
@@ -410,7 +417,7 @@ function clearLines(tspin) {
 }
 
 function updateSpeed() {
-  level = Math.floor(lines / 10) + 1;
+  level = Math.floor(lines / 10) + startLevel;
   dropInterval = Math.max(100, 1000 - (level - 1) * 90);
 }
 
@@ -964,15 +971,48 @@ function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    pauseMenu.classList.add('hidden');
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    pauseControls.classList.add('hidden');
+    setPauseSel(0);
+    renderStartLevel();
+    pauseMenu.classList.remove('hidden');
   }
 }
+
+function setPauseSel(i) {
+  pauseSel = (i + pauseItems.length) % pauseItems.length;
+  pauseItems.forEach((b, j) => b.classList.toggle('selected', j === pauseSel));
+}
+
+function renderStartLevel() {
+  startLevelEl.textContent = startLevel;
+}
+
+function changeStartLevel(d) {
+  startLevel = Math.min(MAX_START_LEVEL, Math.max(1, startLevel + d));
+  renderStartLevel();
+}
+
+function pauseAction(action) {
+  if (action === 'resume') togglePause();
+  else if (action === 'restart') init();
+  else if (action === 'controls') pauseControls.classList.toggle('hidden');
+  else if (action === 'level') changeStartLevel(1);
+}
+
+pauseItems.forEach((btn, i) => {
+  btn.addEventListener('click', e => {
+    const d = e.target.dataset.level;
+    setPauseSel(i);
+    if (d) changeStartLevel(+d);
+    else pauseAction(btn.dataset.action);
+    btn.blur();
+  });
+});
 
 function loop(ts) {
   const dt = ts - lastTime;
@@ -1033,7 +1073,7 @@ function init() {
   challenge = null;
   challengeIdx = null;
   challengeStartLines = 0;
-  startedChallenges = new Set();
+  startedChallenges = new Set(CHALLENGES.flatMap((c, i) => c.level < startLevel ? [i] : [])); // los previos al nivel inicial no se juegan
   challengeQueue = [];
   pendingPower = false;
   pendingSingle = false;
@@ -1069,6 +1109,7 @@ function init() {
   updateGoalHUD();
   overlay.classList.add('hidden');
   abilityMenu.classList.add('hidden');
+  pauseMenu.classList.add('hidden');
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -1090,7 +1131,18 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (e.code === 'KeyP') { togglePause(); return; }
-  if (paused || gameOver) return;
+  if (paused) { // menú de pausa: ninguna tecla llega al juego
+    e.preventDefault();
+    if (e.code === 'Escape') togglePause();
+    else if (e.code === 'ArrowUp') setPauseSel(pauseSel - 1);
+    else if (e.code === 'ArrowDown') setPauseSel(pauseSel + 1);
+    else if (e.code === 'ArrowLeft') changeStartLevel(-1);
+    else if (e.code === 'ArrowRight') changeStartLevel(1);
+    else if (e.code === 'Enter' || e.code === 'Space') pauseAction(pauseItems[pauseSel].dataset.action);
+    return;
+  }
+  if (e.code === 'Escape' && !gameOver) { togglePause(); return; }
+  if (gameOver) return;
   switch (e.code) {
     case 'KeyE':
       openMenu();

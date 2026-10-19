@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tetris</title>
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <button id="theme-toggle" type="button" aria-label="Cambiar tema">☀️ Claro</button>
@@ -92,6 +92,34 @@
       </div>
     </div>
 
+    <div id="pause-menu" class="overlay hidden">
+      <div class="overlay-box pause-box">
+        <p class="pause-title">PAUSA</p>
+        <ul class="pause-list" id="pause-list">
+          <li><button type="button" class="pause-item" data-action="resume">Reanudar</button></li>
+          <li><button type="button" class="pause-item" data-action="restart">Reiniciar</button></li>
+          <li><button type="button" class="pause-item" data-action="controls">Ver controles</button></li>
+          <li>
+            <button type="button" class="pause-item" data-action="level">
+              Nivel inicial
+              <span class="pause-level"><span data-level="-1">◀</span> <b id="start-level">1</b> <span data-level="1">▶</span></span>
+            </button>
+          </li>
+        </ul>
+        <ul class="pause-controls hidden" id="pause-controls">
+          <li><kbd>←</kbd><kbd>→</kbd> mover</li>
+          <li><kbd>↑</kbd>/<kbd>X</kbd> rotar</li>
+          <li><kbd>↓</kbd> bajar</li>
+          <li><kbd>Space</kbd> caída</li>
+          <li><kbd>C</kbd>/<kbd>Shift</kbd> reservar</li>
+          <li><kbd>E</kbd> habilidad</li>
+          <li><kbd>P</kbd>/<kbd>Esc</kbd> pausa</li>
+          <li><kbd>M</kbd> silencio</li>
+        </ul>
+        <p class="ability-hint">↑↓ elegir · Enter aceptar · ←→ nivel</p>
+      </div>
+    </div>
+
     <div id="ability-menu" class="overlay hidden">
       <div class="overlay-box ability-box">
         <p class="ability-title" id="ability-title">HABILIDAD</p>
@@ -103,6 +131,6 @@
   </div>
   </main>
 
-  <script src="game.js?v=9"></script>
+  <script src="game.js?v=10"></script>
 </body>
 </html>

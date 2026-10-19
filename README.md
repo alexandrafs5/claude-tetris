@@ -103,7 +103,7 @@ Después abre `http://localhost:8000` en el navegador.
 | `Espacio` | Hard drop (caída instantánea)     |
 | `C` / `Shift` | Reservar / intercambiar pieza (HOLD) |
 | `E`       | Abrir habilidades (barra llena)   |
-| `P`       | Pausar / reanudar                 |
+| `P` / `Esc` | Menú de pausa (reanudar, reiniciar, controles, nivel inicial) |
 | `M`       | Silenciar / activar sonido        |
 
 ---
