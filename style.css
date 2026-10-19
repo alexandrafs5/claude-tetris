@@ -380,3 +380,57 @@ kbd {
     width: calc(50% - 10px);
   }
 }
+
+/* ---- Skins ---- */
+#skin-select {
+  position: fixed;
+  top: 16px;
+  right: 130px;
+  background: var(--board-bg);
+  color: var(--text);
+  border: 1px solid var(--board-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#skin-select:hover {
+  border-color: var(--accent);
+}
+
+:root[data-skin="neon"] {
+  --board-bg: #000;
+  --board-border: #00f0ff;
+  --grid: #10222a;
+  --accent: #00f0ff;
+}
+
+:root[data-skin="neon"] #board {
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.45), inset 0 0 20px rgba(0, 240, 255, 0.12);
+}
+
+:root[data-skin="neon"] .title {
+  text-shadow: 0 0 12px var(--accent);
+}
+
+:root[data-skin="pastel"] {
+  --board-bg: #fdf6f9;
+  --board-border: #e8cfe0;
+  --grid: #f1e4ec;
+}
+
+:root[data-skin="pastel"] #board {
+  border-radius: 14px;
+}
+
+:root[data-skin="pixel"] #board {
+  border-radius: 0;
+  border-width: 3px;
+  image-rendering: pixelated;
+}
+
+:root[data-skin="pixel"] .title {
+  font-family: "Courier New", monospace;
+}
