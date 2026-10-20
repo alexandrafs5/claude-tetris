@@ -386,14 +386,16 @@ kbd {
   position: fixed;
   top: 16px;
   right: 130px;
-  background: var(--board-bg);
+  background: var(--kbd-bg);
   color: var(--text);
-  border: 1px solid var(--board-border);
+  border: 1px solid var(--kbd-border);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  color-scheme: dark;
+  font-family: inherit;
 }
 
 #skin-select:hover {
@@ -433,4 +435,13 @@ kbd {
 
 :root[data-skin="pixel"] .title {
   font-family: "Courier New", monospace;
+}
+
+:root[data-theme="light"] #skin-select {
+  color-scheme: light;
+}
+
+#skin-select option {
+  background: var(--kbd-bg);
+  color: var(--text);
 }
