@@ -53,3 +53,9 @@ Three files: `index.html` (DOM + two canvases), `style.css`, `game.js` (all logi
 - Canvas size is hardcoded in `index.html` (`300×600` board, `120×120` next). Changing `COLS/ROWS/BLOCK` in `game.js` requires updating those attributes. `drawNext` uses its own `NB = 30` and centers the piece's bounding box in the canvas.
 - Level/speed formula lives in `updateSpeed()` (called by `init` and `clearLines`).
 - `README.md` says "~300 lines" and documents controls/scoring; keep in sync if mechanics change.
+
+## Records
+
+- `localStorage` key `tetris-records`: `{ top: [{name, score}] (max `TOP_SIZE`=5), bestCombo, maxLines }`. `loadRecords`/`saveRecords`/`recordRank`/`renderRecords`.
+- `endGame` updates `bestCombo` (`maxComboRun`, set in `clearLines`) and `maxLines`, shows `#name-form` if `recordRank` ≥ 0 (`pendingRecord`); `commitRecord` (form submit or Restart) inserts the entry. `keydown` ignores events from `#name-input`.
+- Start screen: `showStart()` after first `init()` (`atStart` blocks pause/keys until `startGame`). "Borrar records" → `resetRecords`.

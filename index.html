@@ -4,10 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tetris</title>
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
+  <div class="top-controls">
+  <select id="skin-select" aria-label="Skin">
+    <option value="retro">Retro</option>
+    <option value="neon">Neon</option>
+    <option value="pastel">Pastel</option>
+    <option value="pixel">Pixel art</option>
+  </select>
   <button id="theme-toggle" type="button" aria-label="Cambiar tema">☀️ Claro</button>
+  </div>
   <main class="app">
   <h1 class="title">TETRIS</h1>
   <div class="wrapper">
@@ -88,7 +96,53 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+        <form id="name-form" class="name-form hidden" autocomplete="off">
+          <label for="name-input">¡Entras en el top! Tu nombre:</label>
+          <div class="name-row">
+            <input id="name-input" type="text" maxlength="12" placeholder="Jugador" />
+            <button type="submit" class="btn">Guardar</button>
+          </div>
+        </form>
+        <div id="records-box" class="records-box"></div>
         <button id="restart-btn" class="btn">Reiniciar</button>
+        <button id="reset-records-btn" class="link-btn" type="button">Borrar records</button>
+      </div>
+    </div>
+
+    <div id="start-overlay" class="overlay hidden">
+      <div class="overlay-box">
+        <p id="start-title">TETRIS</p>
+        <div id="start-records" class="records-box"></div>
+        <button id="start-btn" class="btn">Jugar</button>
+        <button id="start-reset-btn" class="link-btn" type="button">Borrar records</button>
+      </div>
+    </div>
+
+    <div id="pause-menu" class="overlay hidden">
+      <div class="overlay-box pause-box">
+        <p class="pause-title">PAUSA</p>
+        <ul class="pause-list" id="pause-list">
+          <li><button type="button" class="pause-item" data-action="resume">Reanudar</button></li>
+          <li><button type="button" class="pause-item" data-action="restart">Reiniciar</button></li>
+          <li><button type="button" class="pause-item" data-action="controls">Ver controles</button></li>
+          <li>
+            <button type="button" class="pause-item" data-action="level">
+              Nivel inicial
+              <span class="pause-level"><span data-level="-1">◀</span> <b id="start-level">1</b> <span data-level="1">▶</span></span>
+            </button>
+          </li>
+        </ul>
+        <ul class="pause-controls hidden" id="pause-controls">
+          <li><kbd>←</kbd><kbd>→</kbd> mover</li>
+          <li><kbd>↑</kbd>/<kbd>X</kbd> rotar</li>
+          <li><kbd>↓</kbd> bajar</li>
+          <li><kbd>Space</kbd> caída</li>
+          <li><kbd>C</kbd>/<kbd>Shift</kbd> reservar</li>
+          <li><kbd>E</kbd> habilidad</li>
+          <li><kbd>P</kbd>/<kbd>Esc</kbd> pausa</li>
+          <li><kbd>M</kbd> silencio</li>
+        </ul>
+        <p class="ability-hint">↑↓ elegir · Enter aceptar · ←→ nivel</p>
       </div>
     </div>
 
@@ -103,6 +157,6 @@
   </div>
   </main>
 
-  <script src="game.js?v=9"></script>
+  <script src="game.js?v=10"></script>
 </body>
 </html>

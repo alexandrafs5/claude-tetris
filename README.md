@@ -59,6 +59,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Reserva (HOLD)**: `C` o `Shift` guarda la pieza actual en el panel HOLD; si ya hay una guardada, las intercambia. Solo una vez por pieza: el slot se atenúa hasta que la pieza actual se fije. Sirve para esperar un Tetris o evitar un mal spawn.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Toggle de tema** claro/oscuro (botón arriba a la derecha; por defecto modo oscuro).
+- **Skins** (selector arriba a la derecha): Retro, Neon (glow con `shadowBlur`), Pastel (bordes redondeados) y Pixel art (textura por bloque); se guarda en `localStorage` y cambia sin recargar.
 
 ---
 
@@ -103,7 +104,7 @@ Después abre `http://localhost:8000` en el navegador.
 | `Espacio` | Hard drop (caída instantánea)     |
 | `C` / `Shift` | Reservar / intercambiar pieza (HOLD) |
 | `E`       | Abrir habilidades (barra llena)   |
-| `P`       | Pausar / reanudar                 |
+| `P` / `Esc` | Menú de pausa (reanudar, reiniciar, controles, nivel inicial) |
 | `M`       | Silenciar / activar sonido        |
 
 ---
@@ -136,6 +137,7 @@ Contiene toda la lógica del juego. A grandes rasgos:
 - **Limpieza de líneas** (`clearLines`): recorre el tablero de abajo hacia arriba; cada fila completa se elimina y se inserta una vacía en la cima.
 - **Puntuación**: usa la tabla clásica `[0, 100, 300, 500, 800]` multiplicada por el nivel actual; el hard drop suma 2 puntos por celda recorrida y el soft drop 1 punto por fila.
 - **Nivel y velocidad**: el nivel sube cada 10 líneas; la velocidad de caída se calcula como `max(100, 1000 − (level − 1) × 90)` milisegundos.
+- **Records** (`localStorage`, clave `tetris-records`): top 5 con nombre (se pide al hacer game over), mejor combo y máximo de líneas. Se muestran en la pantalla de inicio y en el game over; la fila nueva se resalta y hay botón "Borrar records".
 - **Ghost piece** (`ghostY`): proyecta la posición final de la pieza actual hacia abajo y la dibuja con `globalAlpha = 0.2`.
 
 ### Flujo del juego
