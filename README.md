@@ -59,6 +59,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Reserva (HOLD)**: `C` o `Shift` guarda la pieza actual en el panel HOLD; si ya hay una guardada, las intercambia. Solo una vez por pieza: el slot se atenúa hasta que la pieza actual se fije. Sirve para esperar un Tetris o evitar un mal spawn.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Toggle de tema** claro/oscuro (botón arriba a la derecha; por defecto modo oscuro).
+- **Skins** (selector arriba a la derecha): Retro, Neon (glow con `shadowBlur`), Pastel (bordes redondeados) y Pixel art (textura por bloque); se guarda en `localStorage` y cambia sin recargar.
 
 ---
 
