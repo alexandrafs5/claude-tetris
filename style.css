@@ -381,20 +381,16 @@ kbd {
   }
 }
 
-<<<<<<< HEAD
-/* ---- Menú de pausa ---- */
-.pause-title {
-=======
-/* ---- Records ---- */
+/* ---- Menú de pausa / Records ---- */
+.pause-title,
 #start-title {
->>>>>>> records-locales
   font-size: 28px;
   font-weight: 800;
   letter-spacing: 4px;
   color: var(--accent);
 }
 
-<<<<<<< HEAD
+/* ---- Menú de pausa ---- */
 .pause-list,
 .pause-controls {
   list-style: none;
@@ -440,7 +436,8 @@ kbd {
 .pause-controls.hidden {
   display: none;
 }
-=======
+
+/* ---- Records ---- */
 .records-box {
   font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
@@ -523,4 +520,3 @@ kbd {
 .link-btn:hover {
   opacity: 1;
 }
->>>>>>> records-locales
