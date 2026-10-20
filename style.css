@@ -381,14 +381,20 @@ kbd {
   }
 }
 
+<<<<<<< HEAD
 /* ---- Menú de pausa ---- */
 .pause-title {
+=======
+/* ---- Records ---- */
+#start-title {
+>>>>>>> records-locales
   font-size: 28px;
   font-weight: 800;
   letter-spacing: 4px;
   color: var(--accent);
 }
 
+<<<<<<< HEAD
 .pause-list,
 .pause-controls {
   list-style: none;
@@ -434,3 +440,87 @@ kbd {
 .pause-controls.hidden {
   display: none;
 }
+=======
+.records-box {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  min-width: 220px;
+}
+
+.records-box h3 {
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.records-box ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.records-box li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.records-box li.me {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.records-box .stats {
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
+.name-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.name-form.hidden {
+  display: none;
+}
+
+.name-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.name-row .btn {
+  margin-top: 0;
+  padding: 8px 14px;
+}
+
+#name-input {
+  width: 120px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  opacity: 1;
+}
+>>>>>>> records-locales
